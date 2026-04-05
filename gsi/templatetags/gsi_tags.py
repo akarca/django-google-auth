@@ -9,7 +9,7 @@ register = template.Library()
 @register.simple_tag(takes_context=True)
 def google_signin_button(context, text="signin_with", divider_text="or"):
     """
-    Render Google Sign-In button with CSRF-safe JavaScript callback.
+    Render Google Sign-In button using redirect mode.
 
     Usage:
         {% load gsi_tags %}
@@ -20,9 +20,6 @@ def google_signin_button(context, text="signin_with", divider_text="or"):
     if not client_id:
         return ""
 
-    request = context.get("request")
-    csrf_token = context.get("csrf_token", "")
-
     html = """
 <div style="margin:1rem 0;text-align:center">
   <div style="border-top:1px solid #ddd;margin:1rem 0;position:relative">
@@ -30,8 +27,9 @@ def google_signin_button(context, text="signin_with", divider_text="or"):
   </div>
   <div id="g_id_onload"
        data-client_id="%(client_id)s"
-       data-callback="handleGSIResponse"
-       data-auto_prompt="false">
+       data-login_uri="%(callback_url)s"
+       data-auto_prompt="false"
+       data-ux_mode="redirect">
   </div>
   <div class="g_id_signin"
        data-type="standard"
@@ -43,34 +41,11 @@ def google_signin_button(context, text="signin_with", divider_text="or"):
   </div>
 </div>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
-<script>
-function handleGSIResponse(response) {
-    var form = document.createElement('form');
-    form.method = 'POST';
-    form.action = '/accounts/google/callback/';
-    var csrf = document.createElement('input');
-    csrf.type = 'hidden'; csrf.name = 'csrfmiddlewaretoken';
-    csrf.value = '%(csrf)s';
-    form.appendChild(csrf);
-    var cred = document.createElement('input');
-    cred.type = 'hidden'; cred.name = 'credential';
-    cred.value = response.credential;
-    form.appendChild(cred);
-    var next = new URLSearchParams(window.location.search).get('next');
-    if (next) {
-        var n = document.createElement('input');
-        n.type = 'hidden'; n.name = 'next'; n.value = next;
-        form.appendChild(n);
-    }
-    document.body.appendChild(form);
-    form.submit();
-}
-</script>
 """ % {
         "client_id": client_id,
         "text": text,
         "divider": divider_text,
-        "csrf": csrf_token,
+        "callback_url": "/accounts/google/callback/",
     }
 
     return mark_safe(html)

@@ -4,6 +4,7 @@ from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth import get_user_model, login
 from django.shortcuts import redirect
+from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_POST
 
 from .conf import get_client_id, get_login_redirect_url, get_login_url
@@ -12,6 +13,7 @@ logger = logging.getLogger(__name__)
 User = get_user_model()
 
 
+@csrf_exempt
 def google_callback(request):
     """
     Handle Google Sign-In callback.
