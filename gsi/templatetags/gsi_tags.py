@@ -20,6 +20,15 @@ def google_signin_button(context, text="signin_with", divider_text="or"):
     if not client_id:
         return ""
 
+    # Build absolute callback URL from request
+    request = context.get("request")
+    if request:
+        scheme = "https" if request.is_secure() else "http"
+        host = request.get_host()
+        callback_url = "%s://%s/accounts/google/callback/" % (scheme, host)
+    else:
+        callback_url = "/accounts/google/callback/"
+
     html = """
 <div style="margin:1rem 0;text-align:center">
   <div style="border-top:1px solid #ddd;margin:1rem 0;position:relative">
@@ -45,7 +54,7 @@ def google_signin_button(context, text="signin_with", divider_text="or"):
         "client_id": client_id,
         "text": text,
         "divider": divider_text,
-        "callback_url": "/accounts/google/callback/",
+        "callback_url": callback_url,
     }
 
     return mark_safe(html)
