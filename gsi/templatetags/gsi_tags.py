@@ -20,12 +20,11 @@ def google_signin_button(context, text="signin_with", divider_text="or"):
     if not client_id:
         return ""
 
-    # Build absolute callback URL from request
+    # Build absolute callback URL from request (always https in production)
     request = context.get("request")
     if request:
-        scheme = "https" if request.is_secure() else "http"
         host = request.get_host()
-        callback_url = "%s://%s/accounts/google/callback/" % (scheme, host)
+        callback_url = "https://%s/accounts/google/callback/" % host
     else:
         callback_url = "/accounts/google/callback/"
 
